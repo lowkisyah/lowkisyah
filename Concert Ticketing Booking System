@@ -1,0 +1,264 @@
+#include <iostream>
+#include <string>
+#include <algorithm>
+#include <regex>
+
+using namespace std;
+
+bool isValidInput(const string& input) {
+    regex pattern("^[A-Za-z ]+$");
+    return regex_match(input, pattern);
+}
+
+struct Ticket {
+    string name;
+    string email;
+    int quantity;
+};
+
+const int MAX_TICKETS = 100;
+Ticket tickets[MAX_TICKETS];
+int numTickets = 0;
+const double TICKET_PRICE = 399.99; // Price per ticket
+
+void bookTickets() {
+      system("CLS");
+    if (numTickets >= MAX_TICKETS) {
+        cout << "Sorry, no more tickets available.\n";
+        return;
+    }
+
+    Ticket ticket;
+    cout << "Enter your name: ";
+    getline(cin, ticket.name);
+
+    while (!isValidInput(ticket.name)) {
+        cout << "Invalid name. Please enter alphabetic characters and spaces only.\n";
+        cout << "Enter your name: ";
+        getline(cin, ticket.name);
+    }
+
+    while (true) {
+        cout << "Enter your email: ";
+        getline(cin, ticket.email);
+
+        // Check if the email has a valid domain
+        if (ticket.email.find("@gmail.com") != string::npos ||
+            ticket.email.find("@yahoo.com") != string::npos ||
+            ticket.email.find("@icloud.com") != string::npos ||
+            ticket.email.find("@hotmail.com") != string::npos) {
+            break;
+        } else {
+            cout << "Invalid email address. Please enter a valid email with domains (@gmail.com, @yahoo.com, @icloud.com, or @hotmail.com).\n";
+        }
+    }
+
+    cout << "Enter the number of tickets: ";
+    cin >> ticket.quantity;
+    cin.ignore(); // Ignore the newline character left by cin
+
+    tickets[numTickets++] = ticket;
+
+    cout << "Tickets booked successfully!\n";
+      system("CLS");
+
+    // Calculate the total price
+    double totalPrice = TICKET_PRICE * ticket.quantity;
+
+    // Display receipt
+
+    cout << "\n-------------- Your Receipt -------------\n";
+    cout << "\|Name: "            << ticket.name <<      "                        \t|"<< endl;
+    cout << "\|Email: "           << ticket.email << "          \t|"<< endl;
+    cout << "\|Quantity: "        << ticket.quantity <<            "                      \t|"<<endl;
+    cout << "\|Total Price: RM"   << totalPrice <<       "              \t|"<<endl;
+    cout << "-----------------------------------------\n";
+}
+
+void deleteTicket() {
+      system("CLS");
+    if (numTickets == 0) {
+        cout << "No tickets booked yet.\n";
+        return;
+    }
+
+    string email;
+    cout << "Enter the email associated with the ticket to delete: ";
+    getline(cin, email);
+
+    int index = -1;
+    for (int i = 0; i < numTickets; ++i) {
+        if (tickets[i].email == email) {
+            index = i;
+            break;
+        }
+    }
+
+    if (index != -1) {
+        // Shift the remaining tickets to fill the gap
+        for (int i = index; i < numTickets - 1; ++i) {
+            tickets[i] = tickets[i + 1];
+        }
+        --numTickets;
+        cout << "Ticket deleted successfully!\n";
+    } else {
+        cout << "Ticket not found.\n";
+    }
+}
+
+void displayTickets() {
+      system("CLS");
+    if (numTickets == 0) {
+        cout << "No tickets booked yet.\n";
+    } else {
+        cout << "Booked Tickets:\n";
+        for (int i = 0; i < numTickets; ++i) {
+            cout << "Ticket #|" << (i + 1) << endl;
+            cout << "Name: " << tickets[i].name << endl;
+            cout << "Email: " << tickets[i].email << endl;
+            cout << "Quantity: " << tickets[i].quantity << endl;
+            cout << "-----------------------------\n";
+        }
+    }
+}
+
+bool compareTickets(const Ticket& ticket1, const Ticket& ticket2) {
+    return ticket1.quantity < ticket2.quantity;
+}
+
+void sortTickets() {
+      system("CLS");
+    sort(tickets, tickets + numTickets, compareTickets);
+    cout << "Tickets sorted by quantity.\n";
+}
+
+int searchTicket(const string& email) {
+    for (int i = 0; i < numTickets; ++i) {
+        if (tickets[i].email == email) {
+            return i;
+        }
+    }
+    return -1; // Ticket not found
+}
+
+class TreeNode {
+
+public:
+    Ticket ticket;
+    TreeNode* left;
+    TreeNode* right;
+
+    TreeNode(const Ticket& t) : ticket(t), left(nullptr), right(nullptr) {}
+};
+
+TreeNode* insertTicket(TreeNode* root, const Ticket& ticket) {
+    if (root == nullptr) {
+        return new TreeNode(ticket);
+    }
+
+    if (ticket.quantity < root->ticket.quantity) {
+        root->left = insertTicket(root->left, ticket);
+    } else {
+        root->right = insertTicket(root->right, ticket);
+    }
+
+    return root;
+}
+
+void displayTicketsUsingTree(TreeNode* root) {
+
+    if (root == nullptr) {
+        return;
+    }
+
+    displayTicketsUsingTree(root->left);
+    cout << "----------------------\n";
+    cout << "VIP Ticket\n";
+    cout << "Name: " << root->ticket.name << endl;
+    cout << "Email: " << root->ticket.email << endl;
+    cout << "Quantity: " << root->ticket.quantity << endl;
+    cout << "----------------------\n";
+    displayTicketsUsingTree(root->right);
+}
+
+void displayTicketsUsingTreeWrapper() {
+      system("CLS");
+    TreeNode* root = nullptr;
+    for (int i = 0; i < numTickets; ++i) {
+        root = insertTicket(root, tickets[i]);
+    }
+
+    cout << "Booked Tickets (Using Tree):\n";
+    displayTicketsUsingTree(root);
+
+    // TODO: Implement cleanup function to deallocate tree nodes
+}
+
+int main() {
+    int choice;
+
+    do {
+    cout << "\t\t * Blackpink Concert *\n" << endl;
+    cout << "---------------------VIP Tickets----------------------" << endl;
+
+    cout << "\t _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ " << endl;
+    cout << "\t|\t\t\t\t\t|" << endl;
+    cout << "\t|\tBook Tickets              ->1\t|" << endl;
+    cout << "\t|\tDelete Ticket             ->2\t|" << endl;
+    cout << "\t|\tDisplay Booked Tickets    ->3\t|" << endl;
+    cout << "\t|\tSort Tickets by Quantity  ->4\t|" << endl;
+    cout << "\t|\tSearch Ticket by Email    ->5\t|" << endl;
+    cout << "\t|\tDisplay Booked Tickets       \t|"        << endl;
+    cout<<"\t|\            (Using Tree)         ->6\t| "<< endl;
+     cout << "\t|\tExit                      ->7\t|" << endl;
+    cout << "\t|\t\t\t\t\t|" << endl;
+    cout << "\t|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|\n" << endl;
+        cout << "Enter your choice: ";
+        cin >> choice;
+        cin.ignore(); // Ignore the newline character left by cin
+
+        cout << endl; // Add a line break for better readability
+
+        switch (choice) {
+            case 1:
+                bookTickets();
+                break;
+            case 2:
+                deleteTicket();
+                break;
+            case 3:
+                displayTickets();
+                break;
+            case 4:
+                sortTickets();
+                break;
+            case 5: {
+                 system("CLS");
+                string email;
+                cout << "Enter the email to search: ";
+                getline(cin, email);
+                int index = searchTicket(email);
+                if (index != -1) {
+                    cout << "Ticket found at index " << index << endl;
+                } else {
+                    cout << "Ticket not found.\n";
+                }
+                break;
+            }
+            case 6:
+                displayTicketsUsingTreeWrapper();
+                break;
+            case 7:
+                cout << "Thank you for using the ticket booking system!\n";
+                break;
+            default:
+                cout << "Invalid choice. Please try again.\n";
+                break;
+        }
+
+        cout << endl;
+
+    } while (choice != 7);
+
+    return 0;
+}
